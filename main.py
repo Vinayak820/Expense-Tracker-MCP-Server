@@ -8,7 +8,7 @@ CATEGORIES_PATH = os.path.join(os.path.dirname(__file__), "categories.json")
 
 mcp = FastMCP("ExpenseTracker-Pro")
 
-# -------------------- DATE NORMALIZER --------------------
+# DATE NORMALIZER (accepts "today", "yesterday" or "YYYY-MM-DD")
 def normalize_date(date_str):
     if not date_str:
         return datetime.today().strftime("%Y-%m-%d")
@@ -23,7 +23,7 @@ def normalize_date(date_str):
     return date_str
 
 
-# -------------------- DB INIT --------------------
+# DB INIT 
 def init_db():
     with sqlite3.connect(DB_PATH) as c:
         # Expenses table
@@ -45,7 +45,7 @@ def init_db():
         except:
             pass
 
-        # Debts table (NEW 🔥)
+        # Debts table (for borrow/lend)
         c.execute("""
             CREATE TABLE IF NOT EXISTS debts(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,7 +61,7 @@ def init_db():
 init_db()
 
 
-# -------------------- ADD EXPENSE --------------------
+# ADD EXPENSE
 @mcp.tool()
 def add_expense(date, amount, category, subcategory="", note=""):
     date = normalize_date(date)
@@ -75,7 +75,7 @@ def add_expense(date, amount, category, subcategory="", note=""):
         return {"status": "ok", "id": cur.lastrowid}
 
 
-# -------------------- ADD CREDIT --------------------
+# ADD CREDIT
 @mcp.tool()
 def add_credit(date, amount, category="Income", note=""):
     date = normalize_date(date)
@@ -89,7 +89,7 @@ def add_credit(date, amount, category="Income", note=""):
         return {"status": "ok", "id": cur.lastrowid}
 
 
-# -------------------- EDIT EXPENSE --------------------
+# EDIT EXPENSE
 @mcp.tool()
 def edit_expense(id, date=None, amount=None, category=None, subcategory=None, note=None):
     with sqlite3.connect(DB_PATH) as c:
@@ -120,7 +120,7 @@ def edit_expense(id, date=None, amount=None, category=None, subcategory=None, no
         return {"status": "updated"}
 
 
-# -------------------- DELETE EXPENSE --------------------
+# DELETE EXPENSE
 @mcp.tool()
 def delete_expense(id):
     with sqlite3.connect(DB_PATH) as c:
@@ -130,7 +130,7 @@ def delete_expense(id):
         return {"status": "deleted"}
 
 
-# -------------------- LIST --------------------
+# LIST EXPENSES
 @mcp.tool()
 def list_expenses(start_date, end_date):
     start_date = normalize_date(start_date)
@@ -148,7 +148,7 @@ def list_expenses(start_date, end_date):
         return [dict(zip(cols, r)) for r in cur.fetchall()]
 
 
-# -------------------- SUMMARY --------------------
+# SUMMARY
 @mcp.tool()
 def summarize(start_date, end_date, category=None):
     start_date = normalize_date(start_date)
@@ -173,7 +173,7 @@ def summarize(start_date, end_date, category=None):
         return [dict(zip(cols, r)) for r in cur.fetchall()]
 
 
-# -------------------- BALANCE --------------------
+# BALANCE
 @mcp.tool()
 def get_balance(start_date, end_date):
     start_date = normalize_date(start_date)
@@ -197,7 +197,7 @@ def get_balance(start_date, end_date):
         }
 
 
-# -------------------- MONTHLY GRAPH --------------------
+# MONTHLY GRAPH
 @mcp.tool()
 def monthly_graph():
     today = datetime.today()
@@ -226,7 +226,7 @@ def monthly_graph():
         }
 
 
-# -------------------- CLEAR --------------------
+# CLEAR ALL EXPENSES
 @mcp.tool()
 def clear_all_expenses():
     with sqlite3.connect(DB_PATH) as c:
@@ -234,7 +234,7 @@ def clear_all_expenses():
     return {"status": "all expenses cleared"}
 
 
-# -------------------- RESET --------------------
+# RESET DATABASE (THIS WILL DELETE ALL DATA)
 @mcp.tool()
 def reset_database():
     if os.path.exists(DB_PATH):
@@ -243,7 +243,7 @@ def reset_database():
     return {"status": "database reset completely"}
 
 
-# -------------------- TOP CATEGORY --------------------
+# TOP CATEGORY 
 @mcp.tool()
 def top_category(start_date, end_date):
     start_date = normalize_date(start_date)
@@ -266,7 +266,7 @@ def top_category(start_date, end_date):
         return {"top_category": row[0], "amount": row[1]}
 
 
-# ==================== DEBT SYSTEM ====================
+# DEBT SYSTEM 
 
 # Borrow
 @mcp.tool()
@@ -356,13 +356,13 @@ def pending_balance():
         return result
 
 
-# -------------------- RESOURCE --------------------
+# RESOURCE 
 @mcp.resource("expense://categories", mime_type="application/json")
 def categories():
     with open(CATEGORIES_PATH, "r", encoding="utf-8") as f:
         return f.read()
 
 
-# -------------------- RUN --------------------
+# RUN 
 if __name__ == "__main__":
     mcp.run()
