@@ -64,6 +64,19 @@ init_db()
 # ADD EXPENSE
 @mcp.tool()
 def add_expense(date, amount, category, subcategory="", note=""):
+    """
+    Use this tool when user wants to add or record an expense.
+
+    Examples:
+    - "Add expense of 500 for food today"
+    - "I spent 200 on travel"
+    - "Add 1000 rupees shopping expense"
+
+    Always extract:
+    - date (default: today)
+    - amount
+    - category (food, travel, shopping etc.)
+    """
     date = normalize_date(date)
 
     with sqlite3.connect(DB_PATH) as c:
